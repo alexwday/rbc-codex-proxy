@@ -81,6 +81,9 @@ TEMPERATURE=0.2         # Model creativity (0.0-1.0, lower = more focused)
 TOP_P=1.0              # Nucleus sampling
 FREQUENCY_PENALTY=0     # Reduce repetition
 PRESENCE_PENALTY=0      # Encourage new topics
+
+# NOTE: Temperature and sampling parameters are NOT supported by o-series models
+# (o1-preview, o1-mini). These only apply to models like gpt-4, gpt-3.5-turbo, etc.
 ```
 
 ### 4. Add SSL Certificate
@@ -472,6 +475,14 @@ rbc-codex-proxy/
 | `TOKEN_URL` | OAuth token endpoint (your OAuth server) | Required |
 | `API_BASE_URL` | Internal API base URL (where tokens are used) | Required |
 | `PROXY_PORT` | Local proxy port | `8080` |
+| `MAX_TOKENS` | Maximum tokens in response | `32768` |
+| `TEMPERATURE` | Model temperature (0.0-1.0) | `0.2` |
+| `TOP_P` | Nucleus sampling parameter | `1.0` |
+| `FREQUENCY_PENALTY` | Repetition penalty (-2.0 to 2.0) | `0` |
+| `PRESENCE_PENALTY` | Topic penalty (-2.0 to 2.0) | `0` |
+
+**Important Note about Model Parameters:**
+Temperature and sampling parameters (`TEMPERATURE`, `TOP_P`, `FREQUENCY_PENALTY`, `PRESENCE_PENALTY`) are **NOT supported** by o-series models such as `o1-preview` and `o1-mini`. These parameters only work with models like `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`, etc. When using o-series models, these parameters will be ignored by the API.
 
 ### Supported Models
 
