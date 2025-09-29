@@ -58,36 +58,30 @@ class ProxyHandler {
       // Get fresh OAuth token
       const token = await this.oauthManager.getToken();
 
-      // Check if model is an o-series model (o1-preview, o1-mini, etc.)
-      const isOSeriesModel = req.body.model && req.body.model.startsWith('o1-');
+      // Check if model is an o-series model (o1-preview, o1-mini, o3, etc.)
+      // O-series models start with 'o' followed by a number
+      const isOSeriesModel = req.body.model && /^o\d/.test(req.body.model);
 
-      // Apply default parameters from environment (can be overridden by request)
-      // For o-series models, exclude temperature and sampling parameters
-      const requestBody = {
-        ...req.body,
-        max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768')
-      };
+      // Build request body based on model type
+      let requestBody;
 
-      // Only add temperature and sampling parameters for non-o-series models
-      if (!isOSeriesModel) {
-        if (req.body.temperature === undefined) {
-          requestBody.temperature = parseFloat(process.env.TEMPERATURE || '0.2');
-        }
-        if (req.body.top_p === undefined) {
-          requestBody.top_p = parseFloat(process.env.TOP_P || '1.0');
-        }
-        if (req.body.frequency_penalty === undefined) {
-          requestBody.frequency_penalty = parseFloat(process.env.FREQUENCY_PENALTY || '0');
-        }
-        if (req.body.presence_penalty === undefined) {
-          requestBody.presence_penalty = parseFloat(process.env.PRESENCE_PENALTY || '0');
-        }
+      if (isOSeriesModel) {
+        // For o-series models, exclude temperature and sampling parameters completely
+        const { temperature, top_p, frequency_penalty, presence_penalty, ...cleanBody } = req.body;
+        requestBody = {
+          ...cleanBody,
+          max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768')
+        };
       } else {
-        // Remove these parameters if they exist for o-series models
-        delete requestBody.temperature;
-        delete requestBody.top_p;
-        delete requestBody.frequency_penalty;
-        delete requestBody.presence_penalty;
+        // For regular models, include temperature and sampling parameters
+        requestBody = {
+          ...req.body,
+          max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768'),
+          temperature: req.body.temperature !== undefined ? req.body.temperature : parseFloat(process.env.TEMPERATURE || '0.2'),
+          top_p: req.body.top_p !== undefined ? req.body.top_p : parseFloat(process.env.TOP_P || '1.0'),
+          frequency_penalty: req.body.frequency_penalty !== undefined ? req.body.frequency_penalty : parseFloat(process.env.FREQUENCY_PENALTY || '0'),
+          presence_penalty: req.body.presence_penalty !== undefined ? req.body.presence_penalty : parseFloat(process.env.PRESENCE_PENALTY || '0')
+        };
       }
 
       // Log request
@@ -211,36 +205,30 @@ class ProxyHandler {
     try {
       const token = await this.oauthManager.getToken();
 
-      // Check if model is an o-series model (o1-preview, o1-mini, etc.)
-      const isOSeriesModel = req.body.model && req.body.model.startsWith('o1-');
+      // Check if model is an o-series model (o1-preview, o1-mini, o3, etc.)
+      // O-series models start with 'o' followed by a number
+      const isOSeriesModel = req.body.model && /^o\d/.test(req.body.model);
 
-      // Apply default parameters from environment (can be overridden by request)
-      // For o-series models, exclude temperature and sampling parameters
-      const requestBody = {
-        ...req.body,
-        max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768')
-      };
+      // Build request body based on model type
+      let requestBody;
 
-      // Only add temperature and sampling parameters for non-o-series models
-      if (!isOSeriesModel) {
-        if (req.body.temperature === undefined) {
-          requestBody.temperature = parseFloat(process.env.TEMPERATURE || '0.2');
-        }
-        if (req.body.top_p === undefined) {
-          requestBody.top_p = parseFloat(process.env.TOP_P || '1.0');
-        }
-        if (req.body.frequency_penalty === undefined) {
-          requestBody.frequency_penalty = parseFloat(process.env.FREQUENCY_PENALTY || '0');
-        }
-        if (req.body.presence_penalty === undefined) {
-          requestBody.presence_penalty = parseFloat(process.env.PRESENCE_PENALTY || '0');
-        }
+      if (isOSeriesModel) {
+        // For o-series models, exclude temperature and sampling parameters completely
+        const { temperature, top_p, frequency_penalty, presence_penalty, ...cleanBody } = req.body;
+        requestBody = {
+          ...cleanBody,
+          max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768')
+        };
       } else {
-        // Remove these parameters if they exist for o-series models
-        delete requestBody.temperature;
-        delete requestBody.top_p;
-        delete requestBody.frequency_penalty;
-        delete requestBody.presence_penalty;
+        // For regular models, include temperature and sampling parameters
+        requestBody = {
+          ...req.body,
+          max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '32768'),
+          temperature: req.body.temperature !== undefined ? req.body.temperature : parseFloat(process.env.TEMPERATURE || '0.2'),
+          top_p: req.body.top_p !== undefined ? req.body.top_p : parseFloat(process.env.TOP_P || '1.0'),
+          frequency_penalty: req.body.frequency_penalty !== undefined ? req.body.frequency_penalty : parseFloat(process.env.FREQUENCY_PENALTY || '0'),
+          presence_penalty: req.body.presence_penalty !== undefined ? req.body.presence_penalty : parseFloat(process.env.PRESENCE_PENALTY || '0')
+        };
       }
 
       console.log(chalk.cyan(`[${requestId}] Completion Request`));
