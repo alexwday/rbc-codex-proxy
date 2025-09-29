@@ -213,44 +213,52 @@ codex --version
 
 If you get an error like `spawn .../aarch64-apple-darwin/codex/codex ENOENT`:
 
-1. **Install the native dependencies:**
-   ```bash
-   # Navigate to where Codex is installed
-   cd $(npm root -g)/@openai/codex-cli
-   # Or if installed from source: cd ~/Projects/codex/codex-cli
+**Solution: Install from source and run the native deps script:**
 
-   # Install native dependencies for your platform
-   npm run install-native-deps
+```bash
+# 1. Clone the repository
+git clone https://github.com/openai/codex.git
+cd codex/codex-cli
+
+# 2. Install npm dependencies
+npm install
+
+# 3. Run the native dependencies installer (Python script)
+python3 scripts/install_native_deps.py
+
+# 4. Make codex available globally
+npm link
+
+# 5. Verify it works
+codex --version
+```
+
+**Alternative approaches if the above doesn't work:**
+
+1. **Try the npm package with post-install fix:**
+   ```bash
+   # Install globally
+   npm install -g @openai/codex
+
+   # Navigate to installation and run Python script
+   cd $(npm root -g)/@openai/codex
+   python3 scripts/install_native_deps.py
    ```
 
-2. **If that doesn't work, try reinstalling with architecture flags:**
+2. **Manual binary installation:**
    ```bash
-   # Uninstall first
-   npm uninstall -g @openai/codex-cli
+   # In the codex/codex-cli directory
+   # The Python script will download the correct binary for your platform
+   python3 scripts/install_native_deps.py --verbose
 
-   # Reinstall with architecture specification
-   npm install -g @openai/codex-cli --target_arch=arm64
+   # Check if binary was downloaded
+   ls -la vendor/
    ```
 
-3. **Alternative: Install from source and build locally:**
+3. **If you see permission errors:**
    ```bash
-   # Clone the repository
-   git clone https://github.com/openai/codex.git
-   cd codex/codex-cli
-
-   # Install dependencies and build
-   npm install
-   npm run install-native-deps
-   npm link
-   ```
-
-4. **Check if the binary exists:**
-   ```bash
-   # Find where Codex is installed
-   npm list -g @openai/codex-cli
-
-   # Check if the binary is present
-   ls -la $(npm root -g)/@openai/codex-cli/bin/
+   # You may need to use sudo for global installation
+   sudo npm link
    ```
 
 **Important:** Do NOT install Codex inside the rbc-codex-proxy folder. They are separate tools:
