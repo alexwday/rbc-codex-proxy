@@ -388,10 +388,13 @@ codex --model-provider rbc --model gpt-4.1</div>
 
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            console.log('Connecting to WebSocket:', wsUrl);
+
+            ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                console.log('Connected to dashboard');
+                console.log('WebSocket connected successfully');
                 document.getElementById('connectionIndicator').className = 'connection-indicator connected';
                 document.getElementById('connectionStatus').textContent = 'Connected';
                 document.getElementById('connectionStatus').style.color = '#10b981';
@@ -413,8 +416,8 @@ codex --model-provider rbc --model gpt-4.1</div>
                 }
             };
 
-            ws.onclose = () => {
-                console.log('Disconnected from dashboard');
+            ws.onclose = (event) => {
+                console.log('WebSocket closed. Code:', event.code, 'Reason:', event.reason);
                 document.getElementById('connectionIndicator').className = 'connection-indicator disconnected';
                 document.getElementById('connectionStatus').textContent = 'Disconnected';
                 document.getElementById('connectionStatus').style.color = '#ef4444';
@@ -430,6 +433,7 @@ codex --model-provider rbc --model gpt-4.1</div>
 
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
+                console.error('WebSocket readyState:', ws.readyState);
             };
         }
 

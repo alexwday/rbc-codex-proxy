@@ -132,13 +132,13 @@ class RBCCodexProxy {
       this.setupMiddleware();
       this.setupRoutes();
 
-      // Start dashboard WebSocket server
-      this.dashboardServer.start(this.app);
-
-      // Start Express server
-      this.app.listen(this.port, () => {
+      // Start Express server and capture the HTTP server instance
+      const server = this.app.listen(this.port, () => {
         this.displayStartupInfo();
       });
+
+      // Start dashboard WebSocket server with the HTTP server
+      this.dashboardServer.start(server);
 
     } catch (error) {
       console.error(chalk.red('❌ Failed to start proxy:'), error.message);

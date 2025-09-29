@@ -8,16 +8,18 @@ class DashboardServer {
     this.updateInterval = null;
   }
 
-  start(app) {
+  start(server) {
     // Create WebSocket server
     this.wss = new WebSocket.Server({ noServer: true });
 
-    // Handle WebSocket upgrade
-    app.on('upgrade', (request, socket, head) => {
+    // Handle WebSocket upgrade on the HTTP server
+    server.on('upgrade', (request, socket, head) => {
       if (request.url === '/ws') {
         this.wss.handleUpgrade(request, socket, head, (ws) => {
           this.wss.emit('connection', ws, request);
         });
+      } else {
+        socket.destroy();
       }
     });
 
