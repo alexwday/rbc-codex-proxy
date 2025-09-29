@@ -1,0 +1,25 @@
+{
+  "name": "rbc-codex-proxy",
+  "version": "1.0.0",
+  "description": "OAuth proxy wrapper for Codex with RBC internal API",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "node test/test-proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "ws": "^8.14.2",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
