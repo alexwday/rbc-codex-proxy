@@ -11,6 +11,20 @@ A local OAuth proxy server that enables OpenAI Codex to work with RBC's internal
 - ⚡ **Streaming Support** - Full support for streaming responses
 - 📈 **Request Metrics** - Track usage, response times, and success rates
 
+## How It Works
+
+This proxy acts as a bridge between Codex CLI and your internal OAuth-protected API:
+
+```
+[Codex CLI] → [RBC Proxy (localhost:8080)] → [Your Internal API]
+                        ↓
+                [OAuth Token Management]
+```
+
+1. **RBC Proxy** runs on your machine (localhost:8080)
+2. **Codex CLI** connects to the proxy instead of directly to your API
+3. **The proxy** handles OAuth tokens automatically and forwards requests
+
 ## Prerequisites
 
 - Node.js 14+ and npm
@@ -18,7 +32,7 @@ A local OAuth proxy server that enables OpenAI Codex to work with RBC's internal
 - Access to your organization's OAuth token endpoint
 - Access to your organization's internal API endpoint
 - SSL certificate file (if required by your organization)
-- OpenAI Codex CLI (installation instructions included)
+- OpenAI Codex CLI (installed separately)
 
 ## Quick Start
 
@@ -165,25 +179,37 @@ Testing /api/status endpoint...
 
 ### 7. Install Codex CLI
 
-If you haven't installed Codex yet, follow these steps:
+Codex should be installed **separately** from the proxy, either globally or in its own directory.
 
-#### Option 1: Install from NPM (Recommended)
+#### Option 1: Install Globally from NPM (Recommended)
 ```bash
+# Install globally (from any directory)
 npm install -g @openai/codex-cli
+
+# This installs Codex system-wide, accessible from anywhere
 ```
 
-#### Option 2: Install from Source
+#### Option 2: Install from Source in a Separate Directory
 ```bash
+# Go to your projects directory (NOT inside rbc-codex-proxy)
+cd ~/Projects  # or wherever you keep your projects
+
+# Clone Codex into its own directory
 git clone https://github.com/openai/codex.git
 cd codex/codex-cli
 npm install
-npm link
+npm link  # Makes 'codex' command available globally
 ```
 
 #### Verify Installation
 ```bash
+# From any directory, check if Codex is installed
 codex --version
 ```
+
+**Important:** Do NOT install Codex inside the rbc-codex-proxy folder. They are separate tools:
+- **rbc-codex-proxy**: Runs locally to handle OAuth (keep running in one terminal)
+- **Codex CLI**: The actual CLI tool you use to interact with AI (use in another terminal)
 
 ### 8. Configure Codex
 
@@ -242,6 +268,41 @@ codex --model-provider rbc --model gpt-4.1 "Explain this code: $(cat main.py)"
 # Or set as default and use without flags
 codex  # Will use RBC provider by default based on config
 ```
+
+## Typical Setup Structure
+
+After installation, you'll have:
+
+```
+~/Projects/                    # Your projects directory
+├── rbc-codex-proxy/          # This proxy (cloned from GitHub)
+│   ├── src/
+│   ├── certificates/
+│   │   └── rbc-ca-bundle.cer
+│   ├── .env                  # Your OAuth credentials
+│   └── package.json
+│
+└── [Codex installed globally via npm]
+
+~/.codex/                     # Codex configuration directory
+└── config.toml              # Points to localhost:8080
+```
+
+## Typical Workflow
+
+1. **Terminal 1 - Start the proxy:**
+   ```bash
+   cd ~/Projects/rbc-codex-proxy
+   npm start
+   # Leave this running
+   ```
+
+2. **Terminal 2 - Use Codex normally:**
+   ```bash
+   cd ~/YourWorkProject
+   export RBC_API_KEY="rbc-proxy-key"
+   codex --model-provider rbc --model gpt-4.1
+   ```
 
 ## Verification Checklist
 
