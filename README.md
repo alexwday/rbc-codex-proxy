@@ -11,6 +11,15 @@ A local OAuth proxy server that enables OpenAI Codex to work with RBC's internal
 - ⚡ **Streaming Support** - Full support for streaming responses
 - 📈 **Request Metrics** - Track usage, response times, and success rates
 
+## Prerequisites
+
+- Node.js 14+ and npm
+- Valid OAuth credentials (CLIENT_ID and CLIENT_SECRET)
+- Access to your organization's OAuth token endpoint
+- Access to your organization's internal API endpoint
+- SSL certificate file (if required by your organization)
+- OpenAI Codex CLI (installation instructions included)
+
 ## Quick Start
 
 ### 1. Clone the Repository
@@ -65,8 +74,7 @@ cp /path/to/rbc-ca-bundle.cer certificates/
 npm start
 ```
 
-You should see:
-
+**Expected Output (Success):**
 ```
 🚀 Starting RBC Codex Proxy...
 🔐 Fetching initial OAuth token...
@@ -85,9 +93,111 @@ You should see:
 └───────────────┴──────────────────────────────────┘
 ```
 
-### 6. Configure Codex
+**If OAuth fails (Missing/Invalid Credentials):**
+```
+🚀 Starting RBC Codex Proxy...
+🔐 Fetching initial OAuth token...
+❌ Failed to fetch OAuth token:
+   Status: 401
+   Message: {"error":"invalid_client"}
+❌ Failed to start proxy: Request failed with status code 401
+```
 
-Add the following to your `~/.codex/config.toml`:
+### 6. Verify the Proxy is Working
+
+#### Check the Dashboard
+1. Open http://localhost:8080/dashboard in your browser
+2. You should see:
+   - **Connection Status**: Should show "Connected" (not "Disconnected")
+   - **OAuth Status**: Should show "✅ Token Valid" with a countdown timer
+   - **Next Refresh**: Should show the time for next token refresh
+
+**Dashboard Indicators:**
+- ✅ **Working**: Connection shows "Connected", OAuth shows "Token Valid" with countdown
+- ❌ **Not Working**: Connection shows "Disconnected", OAuth shows "Token Expired" or no timer
+
+#### Test the Health Endpoint
+```bash
+curl http://localhost:8080/health
+```
+
+**Expected Response:**
+```json
+{
+  "status": "running",
+  "uptime": 10,
+  "token_status": "valid"  // Should be "valid" not "expired"
+}
+```
+
+#### Run the Test Suite
+```bash
+npm test
+```
+
+**Expected Output:**
+```
+🧪 RBC Codex Proxy Test Suite
+
+Testing /health endpoint...
+  ✅ Health endpoint is working
+  Token status: valid
+  Uptime: 5s
+
+Testing /dashboard endpoint...
+  ✅ Dashboard endpoint is serving HTML
+
+Testing /api/status endpoint...
+  ✅ API status endpoint is working
+  Proxy port: 8080
+  OAuth token: Valid
+
+# ... more tests ...
+
+📊 Test Results:
+  Passed: 5
+  Failed: 0
+
+  Total: 5 tests (100% passed)
+
+✅ All tests passed!
+```
+
+### 7. Install Codex CLI
+
+If you haven't installed Codex yet, follow these steps:
+
+#### Option 1: Install from NPM (Recommended)
+```bash
+npm install -g @openai/codex-cli
+```
+
+#### Option 2: Install from Source
+```bash
+git clone https://github.com/openai/codex.git
+cd codex/codex-cli
+npm install
+npm link
+```
+
+#### Verify Installation
+```bash
+codex --version
+```
+
+### 8. Configure Codex
+
+Create or edit the Codex configuration file:
+
+```bash
+# Create config directory if it doesn't exist
+mkdir -p ~/.codex
+
+# Create or edit config file
+nano ~/.codex/config.toml
+```
+
+Add the following configuration:
 
 ```toml
 [model_providers.rbc]
@@ -100,15 +210,52 @@ model_provider = "rbc"
 model = "gpt-4.1"  # or your preferred model
 ```
 
-### 7. Use Codex with RBC API
+### 9. Test Codex Connection
+
+First, set the API key environment variable:
 
 ```bash
 # Set the API key (any non-empty value works)
 export RBC_API_KEY="rbc-proxy-key"
-
-# Run Codex
-codex --model-provider rbc --model gpt-4.1
 ```
+
+Test the connection:
+
+```bash
+# Test with a simple prompt
+echo "Hello, can you hear me?" | codex --model-provider rbc --model gpt-4.1
+```
+
+If successful, you should receive a response from the model through your proxy.
+
+### 10. Use Codex with RBC API
+
+Now you can use Codex normally:
+
+```bash
+# Interactive mode
+codex --model-provider rbc --model gpt-4.1
+
+# Or use with specific commands
+codex --model-provider rbc --model gpt-4.1 "Explain this code: $(cat main.py)"
+
+# Or set as default and use without flags
+codex  # Will use RBC provider by default based on config
+```
+
+## Verification Checklist
+
+After setup, verify everything is working:
+
+- [ ] **Proxy starts without errors** - See "OAuth token acquired successfully"
+- [ ] **Dashboard accessible** - http://localhost:8080/dashboard loads
+- [ ] **Dashboard shows "Connected"** - Not "Disconnected"
+- [ ] **OAuth token valid** - Dashboard shows "✅ Token Valid" with countdown
+- [ ] **Health check passes** - `curl http://localhost:8080/health` returns `"token_status": "valid"`
+- [ ] **Test suite passes** - `npm test` shows all tests passing
+- [ ] **Codex installed** - `codex --version` shows version number
+- [ ] **Codex configured** - `~/.codex/config.toml` contains RBC provider settings
+- [ ] **Codex can connect** - Test prompt receives a response
 
 ## Dashboard
 
@@ -121,6 +268,18 @@ The dashboard shows:
 - Recent request history
 - Average response times
 - Success/error rates
+
+**Working Dashboard Example:**
+- Connection: Connected ✅
+- OAuth Status: Token Valid ✅
+- Countdown Timer: 14:32 (showing time until refresh)
+- Next Refresh: Shows specific time
+
+**Not Working Dashboard Example:**
+- Connection: Disconnected ❌
+- OAuth Status: Token Expired ❌
+- Countdown Timer: -- (no timer shown)
+- Next Refresh: --:--:--
 
 ## Testing
 
@@ -186,13 +345,45 @@ codex --model gpt-4.1
 
 ## Troubleshooting
 
+### Dashboard Shows "Disconnected"
+
+This usually means the WebSocket connection between the dashboard and server failed:
+
+1. **Refresh the browser page** - Sometimes the initial connection fails
+2. **Check if proxy is still running** - Look at the terminal where you ran `npm start`
+3. **Try a different browser** - Some browsers block local WebSocket connections
+4. **Check browser console** - Press F12 and look for WebSocket errors
+
+### No OAuth Token in Dashboard
+
+If the dashboard shows "Token Expired" or no countdown timer:
+
+1. **Check proxy startup logs** - Did you see "✅ OAuth token acquired successfully"?
+2. **Verify credentials** - Your `CLIENT_ID` and `CLIENT_SECRET` must be valid
+3. **Test OAuth endpoint** - Try manually:
+   ```bash
+   curl -X POST YOUR_TOKEN_URL \
+     -d "grant_type=client_credentials" \
+     -d "client_id=YOUR_CLIENT_ID" \
+     -d "client_secret=YOUR_CLIENT_SECRET"
+   ```
+4. **Check SSL certificate** - OAuth server may require the certificate
+
 ### Certificate Issues
 
 If you see SSL certificate errors:
 
 1. Ensure `rbc-ca-bundle.cer` is in the `certificates/` directory
-2. Check the certificate is valid and not expired
+2. Check the certificate is valid and not expired:
+   ```bash
+   openssl x509 -in certificates/rbc-ca-bundle.cer -text -noout
+   ```
 3. Verify the certificate matches your API endpoint
+4. Try disabling certificate validation temporarily (for testing only):
+   ```javascript
+   // In src/oauth-manager.js, change rejectUnauthorized
+   this.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+   ```
 
 ### OAuth Token Errors
 
@@ -201,15 +392,39 @@ If token fetching fails:
 1. Verify your `CLIENT_ID` and `CLIENT_SECRET` are correct
 2. Check the `TOKEN_URL` matches your OAuth server
 3. Ensure your credentials have the necessary permissions
-4. Check network connectivity to the OAuth server
+4. Check network connectivity to the OAuth server:
+   ```bash
+   ping your-oauth-server.rbc.com
+   nslookup your-oauth-server.rbc.com
+   ```
+
+### Proxy Starts But Can't Fetch Token
+
+If you see "Failed to start proxy" after "Fetching initial OAuth token":
+
+1. **Missing environment variables** - All 4 are required:
+   - CLIENT_ID
+   - CLIENT_SECRET
+   - TOKEN_URL
+   - API_BASE_URL
+2. **Invalid OAuth endpoint** - Verify the TOKEN_URL is correct
+3. **Network/Firewall issues** - Can you reach the OAuth server?
+4. **Certificate required** - Some OAuth servers require the SSL certificate
 
 ### Connection Refused
 
 If Codex can't connect to the proxy:
 
 1. Ensure the proxy is running (`npm start`)
-2. Check the port isn't already in use
+2. Check the port isn't already in use:
+   ```bash
+   lsof -i :8080
+   ```
 3. Verify the `base_url` in your Codex config matches the proxy URL
+4. Try connecting directly:
+   ```bash
+   curl http://localhost:8080/health
+   ```
 
 ### No Response from API
 
@@ -219,6 +434,10 @@ If requests timeout or fail:
 2. Verify your OAuth token has API access permissions
 3. Check the dashboard for error details
 4. Review proxy logs in the terminal
+5. Test the API directly with your token:
+   ```bash
+   curl -H "Authorization: Bearer YOUR_TOKEN" YOUR_API_BASE_URL/test
+   ```
 
 ## Security
 
