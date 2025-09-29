@@ -24,12 +24,12 @@ class RBCCodexProxy {
     this.oauthManager = new OAuthManager({
       clientId: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      tokenUrl: process.env.TOKEN_URL || 'https://api.rbc.com/oauth/token',
+      tokenUrl: process.env.TOKEN_URL,
       certPath: path.join(__dirname, '..', 'certificates', 'rbc-ca-bundle.cer')
     });
 
     this.proxyHandler = new ProxyHandler({
-      baseUrl: process.env.API_BASE_URL || 'https://api.rbc.com/v1',
+      baseUrl: process.env.API_BASE_URL,
       oauthManager: this.oauthManager,
       metrics: this.metrics,
       certPath: path.join(__dirname, '..', 'certificates', 'rbc-ca-bundle.cer')
@@ -42,7 +42,7 @@ class RBCCodexProxy {
   }
 
   validateConfig() {
-    const required = ['CLIENT_ID', 'CLIENT_SECRET'];
+    const required = ['CLIENT_ID', 'CLIENT_SECRET', 'TOKEN_URL', 'API_BASE_URL'];
     const missing = required.filter(key => !process.env[key]);
 
     if (missing.length > 0) {

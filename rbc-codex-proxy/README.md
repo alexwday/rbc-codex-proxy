@@ -34,15 +34,20 @@ Create a `.env` file based on the example:
 cp .env.example .env
 ```
 
-Edit `.env` and add your OAuth credentials:
+Edit `.env` and add your OAuth credentials and API endpoints:
 
 ```env
+# OAuth credentials
 CLIENT_ID=your-client-id-here
 CLIENT_SECRET=your-client-secret-here
 
-# Optional: Override defaults
-TOKEN_URL=https://api.rbc.com/oauth/token
-API_BASE_URL=https://api.rbc.com/v1
+# Your OAuth server endpoint for getting tokens
+TOKEN_URL=https://your-oauth-server.rbc.com/oauth/token
+
+# Your internal API endpoint that accepts the OAuth tokens
+API_BASE_URL=https://your-internal-api.rbc.com/v1
+
+# Optional: Change proxy port (default: 8080)
 PROXY_PORT=8080
 ```
 
@@ -161,8 +166,8 @@ rbc-codex-proxy/
 |----------|-------------|---------|
 | `CLIENT_ID` | OAuth client ID | Required |
 | `CLIENT_SECRET` | OAuth client secret | Required |
-| `TOKEN_URL` | OAuth token endpoint | `https://api.rbc.com/oauth/token` |
-| `API_BASE_URL` | RBC API base URL | `https://api.rbc.com/v1` |
+| `TOKEN_URL` | OAuth token endpoint (your OAuth server) | Required |
+| `API_BASE_URL` | Internal API base URL (where tokens are used) | Required |
 | `PROXY_PORT` | Local proxy port | `8080` |
 
 ### Supported Models
