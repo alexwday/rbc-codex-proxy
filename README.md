@@ -475,6 +475,7 @@ rbc-codex-proxy/
 | `TOKEN_URL` | OAuth token endpoint (your OAuth server) | Required |
 | `API_BASE_URL` | Internal API base URL (where tokens are used) | Required |
 | `PROXY_PORT` | Local proxy port | `8080` |
+| `REQUEST_SIZE_LIMIT` | Maximum request body size | `50mb` |
 | `MAX_TOKENS` | Maximum tokens in response | `32768` |
 | `TEMPERATURE` | Model temperature (0.0-1.0) | `0.2` |
 | `TOP_P` | Nucleus sampling parameter | `1.0` |
@@ -580,6 +581,19 @@ If Codex can't connect to the proxy:
    ```bash
    curl http://localhost:8080/health
    ```
+
+### Payload Too Large Error (413)
+
+If you get a "413 Payload Too Large" error:
+
+1. **Increase the request size limit** in your `.env` file:
+   ```bash
+   REQUEST_SIZE_LIMIT=100mb  # Increase from default 50mb
+   ```
+2. **Restart the proxy** after changing the limit
+3. **Check your API's limits** - Your internal API may have its own size limits
+4. **Consider reducing context** - Trim older messages from the conversation if possible
+5. **Enable compression** - The proxy now automatically compresses requests and responses
 
 ### No Response from API
 

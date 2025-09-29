@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const express = require('express');
+const compression = require('compression');
 const path = require('path');
 const chalk = require('chalk');
 const Table = require('cli-table3');
@@ -55,7 +56,25 @@ class RBCCodexProxy {
   }
 
   setupMiddleware() {
-    this.app.use(express.json());
+    // Enable compression for all responses
+    this.app.use(compression());
+
+    // Get size limit from environment or use default
+    const sizeLimit = process.env.REQUEST_SIZE_LIMIT || '50mb';
+
+    // Increase JSON body limit (default Express limit is 100kb)
+    this.app.use(express.json({
+      limit: sizeLimit,
+      // Also increase parameter limit for URL-encoded bodies
+      parameterLimit: 50000
+    }));
+
+    // Also handle URL-encoded bodies with increased limit
+    this.app.use(express.urlencoded({
+      limit: sizeLimit,
+      extended: true,
+      parameterLimit: 50000
+    }));
 
     // CORS for dashboard
     this.app.use((req, res, next) => {

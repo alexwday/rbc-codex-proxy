@@ -84,7 +84,8 @@ class ProxyHandler {
         };
       }
 
-      // Log request
+      // Log request with size information
+      const requestSize = JSON.stringify(requestBody).length;
       console.log(chalk.cyan(`[${requestId}] Chat Completion Request`));
       console.log(chalk.gray(`  Model: ${requestBody.model}`));
       console.log(chalk.gray(`  Max Tokens: ${requestBody.max_tokens}`));
@@ -93,6 +94,12 @@ class ProxyHandler {
       }
       console.log(chalk.gray(`  Stream: ${requestBody.stream || false}`));
       console.log(chalk.gray(`  Messages: ${requestBody.messages?.length || 0}`));
+      console.log(chalk.gray(`  Request Size: ${(requestSize / 1024).toFixed(2)} KB`));
+
+      // Warn if request is large
+      if (requestSize > 1024 * 1024) { // > 1MB
+        console.log(chalk.yellow(`  ⚠️  Large request: ${(requestSize / 1024 / 1024).toFixed(2)} MB`));
+      }
 
       // Record metrics
       this.metrics.recordRequest({
