@@ -58,16 +58,28 @@ class ProxyHandler {
       // Get fresh OAuth token
       const token = await this.oauthManager.getToken();
 
+      // Apply default parameters from environment (can be overridden by request)
+      const requestBody = {
+        ...req.body,
+        max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '4096'),
+        temperature: req.body.temperature !== undefined ? req.body.temperature : parseFloat(process.env.TEMPERATURE || '0.7'),
+        top_p: req.body.top_p !== undefined ? req.body.top_p : parseFloat(process.env.TOP_P || '1.0'),
+        frequency_penalty: req.body.frequency_penalty !== undefined ? req.body.frequency_penalty : parseFloat(process.env.FREQUENCY_PENALTY || '0'),
+        presence_penalty: req.body.presence_penalty !== undefined ? req.body.presence_penalty : parseFloat(process.env.PRESENCE_PENALTY || '0')
+      };
+
       // Log request
       console.log(chalk.cyan(`[${requestId}] Chat Completion Request`));
-      console.log(chalk.gray(`  Model: ${req.body.model}`));
-      console.log(chalk.gray(`  Stream: ${req.body.stream || false}`));
-      console.log(chalk.gray(`  Messages: ${req.body.messages?.length || 0}`));
+      console.log(chalk.gray(`  Model: ${requestBody.model}`));
+      console.log(chalk.gray(`  Max Tokens: ${requestBody.max_tokens}`));
+      console.log(chalk.gray(`  Temperature: ${requestBody.temperature}`));
+      console.log(chalk.gray(`  Stream: ${requestBody.stream || false}`));
+      console.log(chalk.gray(`  Messages: ${requestBody.messages?.length || 0}`));
 
       // Record metrics
       this.metrics.recordRequest({
         id: requestId,
-        model: req.body.model,
+        model: requestBody.model,
         endpoint: '/v1/chat/completions',
         timestamp: new Date().toISOString()
       });
@@ -75,12 +87,12 @@ class ProxyHandler {
       // Forward request to actual API
       const apiUrl = `${this.baseUrl}/chat/completions`;
 
-      if (req.body.stream) {
+      if (requestBody.stream) {
         // Handle streaming response
-        await this.handleStreamingResponse(req, res, apiUrl, token, requestId);
+        await this.handleStreamingResponse(requestBody, res, apiUrl, token, requestId);
       } else {
         // Handle regular response
-        await this.handleRegularResponse(req, res, apiUrl, token, requestId);
+        await this.handleRegularResponse(requestBody, res, apiUrl, token, requestId);
       }
 
       // Record success
@@ -112,8 +124,8 @@ class ProxyHandler {
     }
   }
 
-  async handleRegularResponse(req, res, apiUrl, token, requestId) {
-    const response = await this.axiosInstance.post(apiUrl, req.body, {
+  async handleRegularResponse(requestBody, res, apiUrl, token, requestId) {
+    const response = await this.axiosInstance.post(apiUrl, requestBody, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -132,8 +144,8 @@ class ProxyHandler {
     res.status(response.status).json(responseData);
   }
 
-  async handleStreamingResponse(req, res, apiUrl, token, requestId) {
-    const response = await this.axiosInstance.post(apiUrl, req.body, {
+  async handleStreamingResponse(requestBody, res, apiUrl, token, requestId) {
+    const response = await this.axiosInstance.post(apiUrl, requestBody, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -175,19 +187,30 @@ class ProxyHandler {
     try {
       const token = await this.oauthManager.getToken();
 
+      // Apply default parameters from environment (can be overridden by request)
+      const requestBody = {
+        ...req.body,
+        max_tokens: req.body.max_tokens || parseInt(process.env.MAX_TOKENS || '4096'),
+        temperature: req.body.temperature !== undefined ? req.body.temperature : parseFloat(process.env.TEMPERATURE || '0.7'),
+        top_p: req.body.top_p !== undefined ? req.body.top_p : parseFloat(process.env.TOP_P || '1.0'),
+        frequency_penalty: req.body.frequency_penalty !== undefined ? req.body.frequency_penalty : parseFloat(process.env.FREQUENCY_PENALTY || '0'),
+        presence_penalty: req.body.presence_penalty !== undefined ? req.body.presence_penalty : parseFloat(process.env.PRESENCE_PENALTY || '0')
+      };
+
       console.log(chalk.cyan(`[${requestId}] Completion Request`));
-      console.log(chalk.gray(`  Model: ${req.body.model}`));
+      console.log(chalk.gray(`  Model: ${requestBody.model}`));
+      console.log(chalk.gray(`  Max Tokens: ${requestBody.max_tokens}`));
 
       this.metrics.recordRequest({
         id: requestId,
-        model: req.body.model,
+        model: requestBody.model,
         endpoint: '/v1/completions',
         timestamp: new Date().toISOString()
       });
 
       const apiUrl = `${this.baseUrl}/completions`;
 
-      const response = await this.axiosInstance.post(apiUrl, req.body, {
+      const response = await this.axiosInstance.post(apiUrl, requestBody, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

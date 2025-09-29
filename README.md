@@ -74,6 +74,13 @@ API_BASE_URL=https://your-internal-api.rbc.com/v1
 
 # Optional: Change proxy port (default: 8080)
 PROXY_PORT=8080
+
+# Optional: Model parameters (increase MAX_TOKENS if responses are cut off)
+MAX_TOKENS=32768        # Maximum response length
+TEMPERATURE=0.2         # Model creativity (0.0-1.0, lower = more focused)
+TOP_P=1.0              # Nucleus sampling
+FREQUENCY_PENALTY=0     # Reduce repetition
+PRESENCE_PENALTY=0      # Encourage new topics
 ```
 
 ### 4. Add SSL Certificate
