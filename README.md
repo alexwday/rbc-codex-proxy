@@ -181,7 +181,9 @@ Testing /api/status endpoint...
 
 Codex should be installed **separately** from the proxy, either globally or in its own directory.
 
-#### Option 1: Install Globally from NPM (Recommended)
+**Note for Mac M1/M2 Users:** You may encounter issues with the pre-built binaries. See troubleshooting section below if you get a "spawn ENOENT" error.
+
+#### Option 1: Install Globally from NPM (Recommended for Intel Macs/Linux)
 ```bash
 # Install globally (from any directory)
 npm install -g @openai/codex-cli
@@ -206,6 +208,50 @@ npm link  # Makes 'codex' command available globally
 # From any directory, check if Codex is installed
 codex --version
 ```
+
+#### Troubleshooting Codex Installation on Mac (M1/M2)
+
+If you get an error like `spawn .../aarch64-apple-darwin/codex/codex ENOENT`:
+
+1. **Install the native dependencies:**
+   ```bash
+   # Navigate to where Codex is installed
+   cd $(npm root -g)/@openai/codex-cli
+   # Or if installed from source: cd ~/Projects/codex/codex-cli
+
+   # Install native dependencies for your platform
+   npm run install-native-deps
+   ```
+
+2. **If that doesn't work, try reinstalling with architecture flags:**
+   ```bash
+   # Uninstall first
+   npm uninstall -g @openai/codex-cli
+
+   # Reinstall with architecture specification
+   npm install -g @openai/codex-cli --target_arch=arm64
+   ```
+
+3. **Alternative: Install from source and build locally:**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/openai/codex.git
+   cd codex/codex-cli
+
+   # Install dependencies and build
+   npm install
+   npm run install-native-deps
+   npm link
+   ```
+
+4. **Check if the binary exists:**
+   ```bash
+   # Find where Codex is installed
+   npm list -g @openai/codex-cli
+
+   # Check if the binary is present
+   ls -la $(npm root -g)/@openai/codex-cli/bin/
+   ```
 
 **Important:** Do NOT install Codex inside the rbc-codex-proxy folder. They are separate tools:
 - **rbc-codex-proxy**: Runs locally to handle OAuth (keep running in one terminal)
