@@ -28,6 +28,8 @@ This proxy acts as a bridge between Codex CLI and your internal OAuth-protected 
 ## Prerequisites
 
 - Node.js 14+ and npm
+- Python 3 (for installing Codex native dependencies)
+- GitHub CLI (`gh`) - Required by Codex for certain operations
 - Valid OAuth credentials (CLIENT_ID and CLIENT_SECRET)
 - Access to your organization's OAuth token endpoint
 - Access to your organization's internal API endpoint
@@ -177,7 +179,27 @@ Testing /api/status endpoint...
 ✅ All tests passed!
 ```
 
-### 7. Install Codex CLI
+### 7. Install Dependencies for Codex
+
+Before installing Codex, ensure you have the required dependencies:
+
+#### Install GitHub CLI (Required by Codex)
+```bash
+# On macOS with Homebrew
+brew install gh
+
+# On macOS with MacPorts
+sudo port install gh
+
+# Or download from: https://cli.github.com/
+```
+
+#### Verify GitHub CLI is installed
+```bash
+gh --version
+```
+
+### 8. Install Codex CLI
 
 Codex should be installed **separately** from the proxy, either globally or in its own directory.
 
@@ -265,7 +287,7 @@ codex --version
 - **rbc-codex-proxy**: Runs locally to handle OAuth (keep running in one terminal)
 - **Codex CLI**: The actual CLI tool you use to interact with AI (use in another terminal)
 
-### 8. Configure Codex
+### 9. Configure Codex
 
 Create or edit the Codex configuration file:
 
@@ -290,7 +312,7 @@ model_provider = "rbc"
 model = "gpt-4.1"  # or your preferred model
 ```
 
-### 9. Test Codex Connection
+### 10. Test Codex Connection
 
 First, set the API key environment variable:
 
@@ -308,7 +330,7 @@ echo "Hello, can you hear me?" | codex --model-provider rbc --model gpt-4.1
 
 If successful, you should receive a response from the model through your proxy.
 
-### 10. Use Codex with RBC API
+### 11. Use Codex with RBC API
 
 Now you can use Codex normally:
 
